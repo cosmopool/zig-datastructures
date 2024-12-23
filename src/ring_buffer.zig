@@ -51,7 +51,7 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
 }
 
 test "init" {
-    const buffer = try RingBuffer(i32, 3).init(testing.allocator);
+    const buffer = RingBuffer(i32, 3).init();
 
     try testing.expect(buffer.items.len == 3);
     try testing.expect(buffer.writeIdx == 0);
@@ -59,63 +59,80 @@ test "init" {
 }
 
 test "insert" {
-    var buffer = try RingBuffer(i32, 3).init(testing.allocator);
+    {
+        // full buffer
+        var buffer = RingBuffer(i32, 3).init();
+        buffer.insert(1);
+        buffer.insert(2);
+        buffer.insert(3);
+        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 1, 2, 3 }));
+    }
 
-    buffer.insert(1);
-    buffer.insert(2);
-    buffer.insert(3);
-    try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 1, 2, 3 }));
-
-    buffer.insert(0);
-    try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 2, 3 }));
-
-    buffer.insert(1);
-    try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 1, 3 }));
-
-    buffer.insert(2);
-    try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 1, 2 }));
-
-    buffer.insert(3);
-    try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 3, 1, 2 }));
+    {
+        // overriding oldest element
+        var buffer = RingBuffer(i32, 3).init();
+        buffer.insert(1);
+        buffer.insert(2);
+        buffer.insert(3);
+        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 1, 2, 3 }));
+        buffer.insert(0);
+        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 2, 3 }));
+        buffer.insert(1);
+        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 1, 3 }));
+        buffer.insert(2);
+        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 1, 2 }));
+        buffer.insert(3);
+        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 3, 1, 2 }));
+    }
 }
 
 test "head" {
-    var buffer = try RingBuffer(i32, 3).init(testing.allocator);
+    {
+        // head should move from pos 0 only when overriting ocurr
+        var buffer = RingBuffer(i32, 3).init();
+        buffer.insert(1);
+        try testing.expect(buffer.head == 0);
+        buffer.insert(2);
+        try testing.expect(buffer.head == 0);
+        buffer.insert(3);
+        try testing.expect(buffer.head == 0);
+    }
 
-    buffer.insert(1);
-    try testing.expect(buffer.head == 0);
-    buffer.insert(2);
-    try testing.expect(buffer.head == 0);
-    buffer.insert(3);
-    try testing.expect(buffer.head == 0);
-
-    buffer.insert(0);
-    try testing.expect(buffer.head == 1);
-
-    buffer.insert(1);
-    try testing.expect(buffer.head == 2);
-
-    buffer.insert(2);
-    try testing.expect(buffer.head == 0);
-
-    buffer.insert(3);
-    try testing.expect(buffer.head == 1);
+    {
+        var buffer = RingBuffer(i32, 3).init();
+        buffer.insert(1);
+        buffer.insert(2);
+        buffer.insert(3);
+        buffer.insert(0);
+        try testing.expect(buffer.head == 1);
+        buffer.insert(1);
+        try testing.expect(buffer.head == 2);
+        buffer.insert(2);
+        try testing.expect(buffer.head == 0);
+        buffer.insert(3);
+        try testing.expect(buffer.head == 1);
+    }
 }
 
 test "retrieve elements" {
-    var buffer = try RingBuffer(i32, 3).init(testing.allocator);
+    {
+        // with empty array should return null
+        const buffer = RingBuffer(i32, 3).init();
+        try testing.expect(buffer.elementAt(0) == null);
+        try testing.expect(buffer.elementAt(1) == null);
+        try testing.expect(buffer.elementAt(2) == null);
+    }
 
-    // with no element
-    try testing.expect(buffer.elementAt(0) == null);
-    try testing.expect(buffer.elementAt(1) == null);
-    try testing.expect(buffer.elementAt(2) == null);
-
-    buffer.insert(1);
-    try testing.expect(buffer.elementAt(0) == 1);
-    buffer.insert(2);
-    try testing.expect(buffer.elementAt(1) == 2);
-    buffer.insert(3);
-    try testing.expect(buffer.elementAt(2) == 3);
-    buffer.insert(0);
-    try testing.expect(buffer.elementAt(2) == 0);
+    {
+        // element at position 0 should be the same as element at head position
+        var buffer = RingBuffer(i32, 3).init();
+        buffer.insert(1);
+        try testing.expect(buffer.elementAt(0) == 1);
+        buffer.insert(2);
+        try testing.expect(buffer.elementAt(1) == 2);
+        buffer.insert(3);
+        try testing.expect(buffer.elementAt(2) == 3);
+        buffer.insert(0);
+        try testing.expect(buffer.elementAt(2) == 0);
+    }
 }
