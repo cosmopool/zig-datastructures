@@ -1,7 +1,6 @@
 const std = @import("std");
 const testing = std.testing;
 const assert = std.debug.assert;
-const Allocator = std.mem.Allocator;
 
 pub fn RingBuffer(comptime T: type, comptime size: usize) type {
     return struct {
@@ -12,13 +11,10 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
         writeIdx: usize = 0,
         full: bool = false,
 
-        /// Deinitialize with `deinit` or use `toOwnedSlice`.
-        // pub fn init(allocator: Allocator) Self {
-        pub fn init(allocator: Allocator) Allocator.Error!Self {
-            _ = allocator; // autofix
-            return Self{
-                .items = undefined,
-            };
+        /// The ring buffer will be allocated in the stack
+        /// so no manual deinit() is required.
+        pub fn init() Self {
+            return Self{ .items = undefined };
         }
 
         /// Set `position` to the next valid array position.
