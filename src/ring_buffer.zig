@@ -53,8 +53,7 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
             // if (index >= size) return self.items[index];
             if (self.head == 0 and self.writeIdx == 0 and !self.full) return null;
 
-            const idx: usize = (index + self.head) % size;
-            return self.items[idx];
+            return self.items[(index + self.head) % size];
         }
     };
 }
