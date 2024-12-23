@@ -18,8 +18,6 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
             _ = allocator; // autofix
             return Self{
                 .items = undefined,
-                // .items = try allocator.alloc(T, size),
-                // .allocator = allocator,
             };
         }
 
