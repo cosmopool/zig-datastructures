@@ -11,8 +11,8 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
         writeIdx: usize = 0,
         full: bool = false,
 
-        /// The ring buffer will be allocated in the stack
-        /// so no manual deinit() is required.
+        /// Initialize a new RingBuffer instance.
+        /// The buffer is allocated on the stack, so no explicit deinit is needed.
         pub fn init() Self {
             return Self{ .items = undefined };
         }
@@ -20,7 +20,8 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
         /// Set `position` to the next valid array position.
         /// If we are at the end of the array, `position` will start
         /// again at the begining.
-        pub fn updateTailPosition(self: *Self) void {
+        /// Head will always point to the oldest item in the buffer.
+        fn updateTailPosition(self: *Self) void {
             assert(self.writeIdx <= size);
             self.writeIdx = (self.writeIdx + 1) % size;
 
@@ -34,8 +35,8 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
             self.head = self.writeIdx;
         }
 
-        /// Insert a new element in this RingBuffer
-        /// Will replace the item if no empty position is available
+        /// Insert a new item into the ring buffer.
+        /// If the buffer is full, the oldest item is overwritten.
         pub fn insert(self: *Self, item: T) void {
             self.items[self.writeIdx] = item;
             self.updateTailPosition();
@@ -126,6 +127,7 @@ test "retrieve elements" {
         try testing.expect(buffer.elementAt(1) == null);
         try testing.expect(buffer.elementAt(2) == null);
     }
+
     {
         // return null if given position is null
         var buffer = RingBuffer(i32, 3).init();
