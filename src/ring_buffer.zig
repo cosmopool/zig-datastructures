@@ -46,9 +46,7 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
         }
 
         pub fn elementAt(self: Self, index: usize) ?T {
-            if (index >= size) return null;
-            // TODO: crash?
-            // if (index >= size) return self.items[index];
+            if (index >= size) return self.items[index];
             if (self.head == 0 and self.writeIdx == 0 and !self.full) return null;
 
             return self.items[(index + self.head) % size];
@@ -110,10 +108,6 @@ test "head" {
 
 test "retrieve elements" {
     var buffer = try RingBuffer(i32, 3).init(testing.allocator);
-
-    // out of bounds
-    try testing.expect(buffer.elementAt(3) == null);
-    try testing.expect(buffer.elementAt(50) == null);
 
     // with no element
     try testing.expect(buffer.elementAt(0) == null);
