@@ -41,9 +41,13 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
             self.updateTailPosition();
         }
 
+        /// Retrieve the element at a given index relative to the current head position.
+        /// Returns `null` no element was inserted at given index position.
+        /// `index` is not sanitized for out of bounds range.
         pub fn elementAt(self: Self, index: usize) ?T {
             if (index >= size) return self.items[index];
             if (self.head == 0 and self.writeIdx == 0 and !self.full) return null;
+            if (!self.full and index >= self.writeIdx) return null;
 
             return self.items[(index + self.head) % size];
         }
@@ -120,6 +124,13 @@ test "retrieve elements" {
         const buffer = RingBuffer(i32, 3).init();
         try testing.expect(buffer.elementAt(0) == null);
         try testing.expect(buffer.elementAt(1) == null);
+        try testing.expect(buffer.elementAt(2) == null);
+    }
+    {
+        // return null if given position is null
+        var buffer = RingBuffer(i32, 3).init();
+        buffer.insert(0);
+        buffer.insert(1);
         try testing.expect(buffer.elementAt(2) == null);
     }
 
