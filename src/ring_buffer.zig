@@ -6,7 +6,9 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
     return struct {
         const Self = @This();
 
+        /// Not intended to be accessed by callers directly
         items: [size]T,
+
         head: usize = 0,
         writeIdx: usize = 0,
         full: bool = false,
