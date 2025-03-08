@@ -60,9 +60,9 @@ pub fn RingBuffer(comptime T: type, comptime size: usize) type {
 test "init" {
     const buffer = RingBuffer(i32, 3).init();
 
-    try testing.expect(buffer.items.len == 3);
-    try testing.expect(buffer.writeIdx == 0);
-    try testing.expect(buffer.head == 0);
+    try testing.expectEqual(buffer.items.len, 3);
+    try testing.expectEqual(buffer.writeIdx, 0);
+    try testing.expectEqual(buffer.head, 0);
 }
 
 test "insert" {
@@ -72,7 +72,7 @@ test "insert" {
         buffer.insert(1);
         buffer.insert(2);
         buffer.insert(3);
-        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 1, 2, 3 }));
+        try testing.expectEqualSlices(i32, &buffer.items, &[3]i32{ 1, 2, 3 });
     }
 
     {
@@ -81,15 +81,15 @@ test "insert" {
         buffer.insert(1);
         buffer.insert(2);
         buffer.insert(3);
-        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 1, 2, 3 }));
+        try testing.expectEqualSlices(i32, &buffer.items, &[3]i32{ 1, 2, 3 });
         buffer.insert(0);
-        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 2, 3 }));
+        try testing.expectEqualSlices(i32, &buffer.items, &[3]i32{ 0, 2, 3 });
         buffer.insert(1);
-        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 1, 3 }));
+        try testing.expectEqualSlices(i32, &buffer.items, &[3]i32{ 0, 1, 3 });
         buffer.insert(2);
-        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 0, 1, 2 }));
+        try testing.expectEqualSlices(i32, &buffer.items, &[3]i32{ 0, 1, 2 });
         buffer.insert(3);
-        try testing.expect(std.mem.eql(i32, &buffer.items, &[3]i32{ 3, 1, 2 }));
+        try testing.expectEqualSlices(i32, &buffer.items, &[3]i32{ 3, 1, 2 });
     }
 }
 
@@ -98,11 +98,11 @@ test "head" {
         // head should move from pos 0 only when overriting ocurr
         var buffer = RingBuffer(i32, 3).init();
         buffer.insert(1);
-        try testing.expect(buffer.head == 0);
+        try testing.expectEqual(buffer.head, 0);
         buffer.insert(2);
-        try testing.expect(buffer.head == 0);
+        try testing.expectEqual(buffer.head, 0);
         buffer.insert(3);
-        try testing.expect(buffer.head == 0);
+        try testing.expectEqual(buffer.head, 0);
     }
 
     {
@@ -110,14 +110,15 @@ test "head" {
         buffer.insert(1);
         buffer.insert(2);
         buffer.insert(3);
+        try testing.expectEqual(buffer.head, 0);
         buffer.insert(0);
-        try testing.expect(buffer.head == 1);
+        try testing.expectEqual(buffer.head, 1);
         buffer.insert(1);
-        try testing.expect(buffer.head == 2);
+        try testing.expectEqual(buffer.head, 2);
         buffer.insert(2);
-        try testing.expect(buffer.head == 0);
+        try testing.expectEqual(buffer.head, 0);
         buffer.insert(3);
-        try testing.expect(buffer.head == 1);
+        try testing.expectEqual(buffer.head, 1);
     }
 }
 
@@ -125,9 +126,9 @@ test "retrieve elements" {
     {
         // with empty array should return null
         const buffer = RingBuffer(i32, 3).init();
-        try testing.expect(buffer.elementAt(0) == null);
-        try testing.expect(buffer.elementAt(1) == null);
-        try testing.expect(buffer.elementAt(2) == null);
+        try testing.expectEqual(buffer.elementAt(0), null);
+        try testing.expectEqual(buffer.elementAt(1), null);
+        try testing.expectEqual(buffer.elementAt(2), null);
     }
 
     {
@@ -135,19 +136,19 @@ test "retrieve elements" {
         var buffer = RingBuffer(i32, 3).init();
         buffer.insert(0);
         buffer.insert(1);
-        try testing.expect(buffer.elementAt(2) == null);
+        try testing.expectEqual(buffer.elementAt(2), null);
     }
 
     {
         // element at position 0 should be the same as element at head position
         var buffer = RingBuffer(i32, 3).init();
         buffer.insert(1);
-        try testing.expect(buffer.elementAt(0) == 1);
+        try testing.expectEqual(buffer.elementAt(0), 1);
         buffer.insert(2);
-        try testing.expect(buffer.elementAt(1) == 2);
+        try testing.expectEqual(buffer.elementAt(1), 2);
         buffer.insert(3);
-        try testing.expect(buffer.elementAt(2) == 3);
+        try testing.expectEqual(buffer.elementAt(2), 3);
         buffer.insert(0);
-        try testing.expect(buffer.elementAt(2) == 0);
+        try testing.expectEqual(buffer.elementAt(2), 0);
     }
 }
